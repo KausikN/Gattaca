@@ -1,5 +1,6 @@
 '''
 A python visualiser for genetic algorithms and related concepts
+Reference: https://towardsdatascience.com/genetic-algorithm-implementation-in-python-5ab67bb124a6
 '''
 
 # Imports
