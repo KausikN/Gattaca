@@ -2,6 +2,8 @@
     "repo_name": "Gattaca",
     "requirements": [
         "streamlit",
-        "opencv-python-headless"
+        "opencv-python-headless",
+        "matplotlib",
+        "numpy"
     ]
 }
