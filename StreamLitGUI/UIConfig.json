@@ -1,0 +1,10 @@
+{
+    "PROJECT_NAME": "Gattaca",
+    "PROJECT_LINK": "https://github.com/KausikN/Gattaca",
+
+    "PROJECT_DESC": "A python visualiser for genetic algorithms and related concepts",
+
+    "PROJECT_README": "README.md",
+
+    "PROJECT_MODES": ["Genetic Equation Optimisation"]
+}

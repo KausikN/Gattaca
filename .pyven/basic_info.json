@@ -1,0 +1,7 @@
+{
+    "repo_name": "Gattaca",
+    "requirements": [
+        "streamlit",
+        "opencv-python-headless"
+    ]
+}

@@ -1,0 +1,51 @@
+{
+    "name": "Gattaca",
+    "repoLink": "https://github.com/KausikN/Gattaca",
+    "localPath": "E:/Github Codes and Projects/Projects/Gattaca",
+    "modules": {
+        "app.py": {
+            "name": "app",
+            "type": "local",
+            "link": "https://github.com/KausikN/Gattaca/blob/master/app.py",
+            "parentDir": "E:/Github Codes and Projects/Projects/Gattaca",
+            "subDir": "",
+            "dependencies": [
+                "os.py",
+                "streamlit.py",
+                "json.py"
+            ]
+        },
+        "Gattaca.py": {
+            "name": "Gattaca",
+            "type": "local",
+            "link": "https://github.com/KausikN/Gattaca/blob/master/Gattaca.py",
+            "parentDir": "E:/Github Codes and Projects/Projects/Gattaca",
+            "subDir": "",
+            "dependencies": []
+        },
+        "json.py": {
+            "name": "json",
+            "type": "inbuilt",
+            "link": "",
+            "parentDir": "E:/Github Codes and Projects/Projects/Gattaca",
+            "subDir": "",
+            "dependencies": []
+        },
+        "os.py": {
+            "name": "os",
+            "type": "inbuilt",
+            "link": "",
+            "parentDir": "E:/Github Codes and Projects/Projects/Gattaca",
+            "subDir": "",
+            "dependencies": []
+        },
+        "streamlit.py": {
+            "name": "streamlit",
+            "type": "inbuilt",
+            "link": "",
+            "parentDir": "E:/Github Codes and Projects/Projects/Gattaca",
+            "subDir": "",
+            "dependencies": []
+        }
+    }
+}
