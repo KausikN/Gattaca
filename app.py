@@ -4,6 +4,7 @@ Stream lit GUI for hosting Gattaca
 
 # Imports
 import os
+import functools
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
@@ -66,24 +67,44 @@ def SaveCache():
 
 
 # UI Functions
+def UI_Param(paramData, col=st):
+    inp = None
+    if paramData['type'] in [float, int]:
+        inp = col.number_input(paramData['name'], paramData['min'], paramData['max'], paramData['default'], paramData['step'])
+        inp = paramData['type'](inp)
+    elif paramData['type'] in [bool]:
+        inp = col.checkbox(paramData['name'], paramData['default'])
+        inp = paramData['type'](inp)
+    
+    return inp
+
+def UI_SelectFunc(name, funcChoices):
+    col1, col2 = st.beta_columns(2)
+    USERINPUT_FuncChoice = col1.selectbox("Select " + name + " Function", list(funcChoices.keys()))
+    FuncData = funcChoices[USERINPUT_FuncChoice]
+    Func = FuncData['func']
+    FuncParamsData = FuncData['params']
+    FuncParams = {}
+    for paramData in FuncParamsData:
+        paramInp = UI_Param(paramData, col=col2)
+        FuncParams[paramData['name']] = paramInp
+    Func = functools.partial(Func, **FuncParams)
+    return Func
+
 def UI_SelectFunctions():
     st.markdown("## Select Functions")
 
     # Fitness Function
-    USERINPUT_FitnessChoice = st.selectbox("Select Fitness Function", list(FitnessFunctions.FitnessFuncs.keys()))
-    FitnessFunc = FitnessFunctions.FitnessFuncs[USERINPUT_FitnessChoice]
+    FitnessFunc = UI_SelectFunc("Fitness Function", FitnessFunctions.FitnessFuncs)
 
     # Parent Selector Function
-    USERINPUT_ParentSelectorChoice = st.selectbox("Select Parent Selector Function", list(ParentSelectorFunctions.ParentSelectorFuncs.keys()))
-    ParentSelectorFunc = ParentSelectorFunctions.ParentSelectorFuncs[USERINPUT_ParentSelectorChoice]
+    ParentSelectorFunc = UI_SelectFunc("Parent Selector Function", ParentSelectorFunctions.ParentSelectorFuncs)
 
     # Crossover Function
-    USERINPUT_CrossoverChoice = st.selectbox("Select Crossover Function", list(CrossoverFunctions.CrossoverFuncs.keys()))
-    CrossoverFunc = CrossoverFunctions.CrossoverFuncs[USERINPUT_CrossoverChoice]
+    CrossoverFunc = UI_SelectFunc("Crossover Function", CrossoverFunctions.CrossoverFuncs)
 
     # Mutation Function
-    USERINPUT_MutationChoice = st.selectbox("Select Mutation Function", list(MutationFunctions.MutationFuncs.keys()))
-    MutationFunc = MutationFunctions.MutationFuncs[USERINPUT_MutationChoice]
+    MutationFunc = UI_SelectFunc("Mutation Function", MutationFunctions.MutationFuncs)
 
     return FitnessFunc, ParentSelectorFunc, CrossoverFunc, MutationFunc
 
@@ -159,6 +180,16 @@ def genetic_equation_optimisation():
         # Display Outputs
         st.markdown("## Results")
         UI_Results(RunData)
+
+def genetic_image_reconstruction():
+    # Title
+    st.header("Genetic Image Reconstruction")
+
+    # Load Inputs
+
+    # Process Inputs
+
+    # Display Outputs
 
     
 #############################################################################################################################

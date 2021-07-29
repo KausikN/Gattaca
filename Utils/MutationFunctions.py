@@ -34,7 +34,10 @@ def MutationFunc_UniformNoise(offspring_crossover, mutated_gene_index=None, boun
 
 # Main Vars
 MutationFuncs = {
-    'UniformNoise': MutationFunc_UniformNoise
+    'UniformNoise': {
+        "func": MutationFunc_UniformNoise,
+        "params": []
+    }
 }
 
 # Driver Code

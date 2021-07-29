@@ -29,7 +29,10 @@ def ParentSelectorFunc_BestFitness(pop, fitness, num_parents):
 
 # Main Vars
 ParentSelectorFuncs = {
-    'BestFitness': ParentSelectorFunc_BestFitness
+    'BestFitness': {
+        "func": ParentSelectorFunc_BestFitness,
+        "params": []
+    }
 }
 
 # Driver Code

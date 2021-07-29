@@ -33,7 +33,10 @@ def CrossoverFunc_MidPoint(parents, offspring_size):
 
 # Main Vars
 CrossoverFuncs = {
-    'MidPoint': CrossoverFunc_MidPoint
+    'MidPoint': {
+        "func": CrossoverFunc_MidPoint,
+        "params": []
+    }
 }
 
 # Driver Code
