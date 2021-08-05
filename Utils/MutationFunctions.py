@@ -14,7 +14,7 @@ from tqdm import tqdm
 # Mutation Functions
 # Mutates the individuals
 
-def MutationFunc_UniformNoise(offspring_crossover, mutated_gene_index=None, boundary=(None, None)):
+def MutationFunc_UniformNoise(offspring_crossover, mutated_gene_index=None, boundary=(None, None), randomScale=1.0):
     # Mutate a single gene in each offspring randomly using uniform noise.
 
     if mutated_gene_index == None:
@@ -22,7 +22,7 @@ def MutationFunc_UniformNoise(offspring_crossover, mutated_gene_index=None, boun
     
     for idx in range(offspring_crossover.shape[0]):
         # The random mutation to be added to the gene.
-        random_mutation = np.random.uniform(-1.0, 1.0, 1)
+        random_mutation = np.random.uniform(-1.0, 1.0, 1)*randomScale
         newoff = offspring_crossover[idx, mutated_gene_index] + random_mutation
         if boundary[0] is not None and newoff < boundary[0]:
             continue
@@ -36,7 +36,16 @@ def MutationFunc_UniformNoise(offspring_crossover, mutated_gene_index=None, boun
 MutationFuncs = {
     'UniformNoise': {
         "func": MutationFunc_UniformNoise,
-        "params": []
+        "params": [
+            {
+                "name": "randomScale",
+                "type": float,
+                "default": 0.1,
+                "min": 0.0,
+                "max": 3.0,
+                "step": 0.1
+            }
+        ]
     }
 }
 

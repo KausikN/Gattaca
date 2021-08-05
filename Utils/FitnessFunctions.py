@@ -28,6 +28,13 @@ def FitnessFunc_PolyLinear(equation_inputs, pop):
     fitness = np.sum(pop*equation_inputs, axis=1)
 
     return fitness
+def FitnessEquationStringFunc_PolyLinear(equation_inputs):
+    # eq inputs = [A, B, C, ...]
+    # A(x1) + B(x2) + C(x3) ...
+    equation_inputs = list(equation_inputs)
+    termList = [str(equation_inputs[i]) + "(" + "x" + str(i+1) + ")" for i in range(len(equation_inputs))]
+    funcStr = " + ".join(termList)
+    return funcStr
 
 def FitnessFunc_Polynomial(equation_inputs, pop):
     # The fitness function calculates the sum of products between each equation input and its corresponding population to an increasing power (Like a polynomial).
@@ -41,6 +48,13 @@ def FitnessFunc_Polynomial(equation_inputs, pop):
         fitness = fitness + fitVal
     
     return fitness
+def FitnessEquationStringFunc_Polynomial(equation_inputs):
+    # eq inputs = [A, B, C, ...]
+    # A(x1^0) + B(x2^2) + C(x3^3) ...
+    equation_inputs = list(equation_inputs)
+    termList = [str(equation_inputs[0])] + [str(equation_inputs[i]) + "(" + "x" + str(i) + "^" + str(i) + ")" for i in range(1, len(equation_inputs))]
+    funcStr = " + ".join(termList)
+    return funcStr
 
 def FitnessFunc_ConvergeTarget(equation_inputs, pop, target=0.0):
     # The fitness function calculates the sum of products between each equation input and its corresponding population and compares to a target value (converging fashion).
@@ -48,9 +62,16 @@ def FitnessFunc_ConvergeTarget(equation_inputs, pop, target=0.0):
     # pop = [x1, x2, x3, ...]
     # 1 / ((A(x1) + B(x2) + C(x3) ...) - target)
 
-    fitness = 1.0 / np.abs(np.sum(pop*equation_inputs, axis=1) - target)
+    fitness = 1 / np.sum(np.abs(pop*equation_inputs - target), axis=1)
     
     return fitness
+def FitnessEquationStringFunc_ConvergeTarget(equation_inputs, target):
+    # eq inputs = [A, B, C, ...]
+    # 1 / ((A(x1) + B(x2) + C(x3) ...) - target)
+    equation_inputs = list(equation_inputs)
+    termList = [str(equation_inputs[i]) + "(" + "x" + str(i+1) + ")" for i in range(len(equation_inputs))]
+    funcStr = "1 / (" + " + ".join(termList) + " - " + str(target) + ")"
+    return funcStr
 
 def FitnessFunc_DivergeTarget(equation_inputs, pop, target=0.0):
     # The fitness function calculates the sum of products between each equation input and its corresponding population and compares to a target value (diverging fashion).
@@ -58,8 +79,25 @@ def FitnessFunc_DivergeTarget(equation_inputs, pop, target=0.0):
     # pop = [x1, x2, x3, ...]
     # ((A(x1) + B(x2) + C(x3) ...) - target)
 
-    fitness = np.abs(np.sum(pop*equation_inputs, axis=1) - target)
+    fitness = np.sum(np.abs(pop*equation_inputs - target), axis=1)
     
+    return fitness
+def FitnessEquationStringFunc_DivergeTarget(equation_inputs, target):
+    # eq inputs = [A, B, C, ...]
+    # ((A(x1) + B(x2) + C(x3) ...) - target)
+    equation_inputs = list(equation_inputs)
+    termList = [str(equation_inputs[i]) + "(" + "x" + str(i+1) + ")" for i in range(len(equation_inputs))]
+    funcStr = "(" + " + ".join(termList) + " - " + str(target) + ")"
+    return funcStr
+
+# Special Fitness Functions
+def FitnessFunc_ReconstructImage(equation_inputs, pop, target=0.0):
+    # The fitness function calculates the sum of products between each equation input and its corresponding population and compares to a target value (diverging fashion).
+    # eq inputs = [A, B, C, ...]
+    # pop = [x1, x2, x3, ...]
+    # target / ((A(x1) + B(x2) + C(x3) ...) - target)
+
+    fitness = - np.sum(np.abs(pop*equation_inputs - target), axis=1)
     return fitness
 
 # Main Vars
@@ -97,6 +135,21 @@ FitnessFuncs = {
                 "step": 0.5
             }
         ]
+    }
+}
+
+FitnessEquationStringFuncs = {
+    'PolyLinear': {
+        "func": FitnessEquationStringFunc_PolyLinear
+    },
+    'Polynomial': {
+        "func": FitnessEquationStringFunc_Polynomial
+    },
+    'Converge': {
+        "func": FitnessEquationStringFunc_ConvergeTarget
+    },
+    'Diverge': {
+        "func": FitnessEquationStringFunc_DivergeTarget
     }
 }
 

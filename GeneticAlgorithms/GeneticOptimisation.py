@@ -7,9 +7,18 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # Main Functions
+# Utils Functions
+def Image2Chromosome(I):
+    return np.array(I).flatten()
+
+def Chromosome2Image(chromosome, image_shape):
+    I = np.array(np.reshape(chromosome, image_shape), dtype=np.uint8)
+    return I
+
 # Optimiser Function
 def GeneticOpimizer_Basic(equation_inputs, num_weights, sol_per_pop, num_generations, num_parents_mating, FitnessFunc, ParentSelectorFunc, CrossoverFunc, MutationFunc, boundary=(None, None), verbose=False, DisplayWidget=None):
     # The population will have sol_per_pop chromosomes where each chromosome has num_weights genes
+    equation_inputs = np.array(equation_inputs)
     pop_size = (sol_per_pop, num_weights)
     lowerbound = boundary[0]
     upperbound = boundary[1]
