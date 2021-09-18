@@ -38,7 +38,7 @@ def GeneticOpimizer_Basic(equation_inputs, num_weights, sol_per_pop, num_generat
         fitness = FitnessFunc(equation_inputs, new_population)
 
         # Print
-        if not max_fitness == None and verbose:
+        if max_fitness is not None and verbose:
             print("Best result after generation", str(generation - 1) + ":", np.max(fitness))
             print("Improvement in result:", str(np.max(fitness) - max_fitness))
 

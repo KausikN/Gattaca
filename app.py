@@ -8,6 +8,7 @@ import cv2
 import functools
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import streamlit as st
 import json
 
@@ -56,7 +57,7 @@ CACHE_PATH = "StreamLitGUI/CacheData/Cache.json"
 DEFAULT_PATH_EXAMPLEIMAGE = 'StreamLitGUI/DefaultData/ExampleImage.png'
 DEFAULT_SAVEPATH_ANIM = 'StreamLitGUI/DefaultData/SavedAnim.gif'
 
-DEFAULT_IMAGE_SIZE = (512, 512)
+DEFAULT_IMAGE_SIZE = (256, 256)
 
 # Util Vars
 CACHE = {}
@@ -77,7 +78,7 @@ def ResizeImage(I):
     I_r = cv2.resize(I, ResizeSize, interpolation=cv2.INTER_NEAREST)
     return I_r
 
-def AddImageElementIndexText(I, i, total):
+def AddImageElementIndexText(I, i, total, textColor=[255, 255, 255]):
     I_size = I.shape[:2]
     pos = (int(I_size[1]/10), int(I_size[0]/10))
 
@@ -90,8 +91,17 @@ def AddImageElementIndexText(I, i, total):
     text_size, _ = cv2.getTextSize(text, font, fontScale, fontThickness)
     text_w, text_h = text_size
     I_t = cv2.rectangle(I, (pos[0] - padding[0], pos[1] + padding[1]), (pos[0] + text_w + padding[0], pos[1] - text_h - padding[1]), [0, 0, 0], -1)
-    I_t = cv2.putText(I_t, text, pos, font, fontScale, [1, 1, 1], fontThickness)
+    I_t = cv2.putText(I_t, text, pos, font, fontScale, textColor, fontThickness)
     return I_t
+
+def PlotHeatMap(gridData, title=""):
+    fig = plt.Figure()
+    ax = fig.add_subplot(111)
+    ax = sns.heatmap(gridData, ax=ax)
+    plt.title(title)
+    # plt.show()
+    HeatmapPlot = fig
+    return HeatmapPlot
 
 # Main Functions
 
@@ -109,7 +119,7 @@ def UI_Param(paramData, col=st):
     return inp
 
 def UI_SelectFunc(name, funcChoices, returnAllData=False):
-    col1, col2 = st.beta_columns(2)
+    col1, col2 = st.columns(2)
     USERINPUT_FuncChoice = col1.selectbox("Select " + name + " Function", list(funcChoices.keys()))
     FuncData = funcChoices[USERINPUT_FuncChoice]
     Func = FuncData['func']
@@ -144,32 +154,52 @@ def UI_SelectFunctions(ignore_fitness=False):
     return FitnessFunc, FitnessEquationStringFunc, ParentSelectorFunc, CrossoverFunc, MutationFunc
 
 def UI_Results(RunData, ncols=3, hugeData=False):
+    st.markdown("## Results")
+
     max_fitness = RunData['max_fitness']
     best_chromosome = RunData['best_chromosome']
     equation_inputs = RunData['equation_inputs']
     num_generations = RunData['num_generations']
     max_fitness_ingen_history = [RunData['run_history'][i]['max_fitness_ingen'] for i in range(num_generations)]
     best_chromosome_ingen_history = [RunData['run_history'][i]['best_chromosome_ingen'] for i in range(num_generations)]
+    max_fitness_history = [RunData['run_history'][i]['max_fitness'] for i in range(num_generations)]
 
+    st.markdown("### Overall Results")
+    # Equation Inputs
     if not hugeData:
-        col1, col2 = st.beta_columns(2)
+        col1, col2 = st.columns(2)
         col1.markdown("Equation:")
         col2.markdown("```python\n" + str(equation_inputs))
 
-    col1, col2 = st.beta_columns(2)
-    col1.markdown("Best Chromosome:")
-    col2.markdown("```python\n" + str(best_chromosome))
-    
-    col1, col2 = st.beta_columns(2)
+    # Best Fitness Overall
+    col1, col2 = st.columns(2)
     col1.markdown("Best Fitness:")
     col2.markdown("```python\n" + str(max_fitness))
 
+    # Best Chromosome Overall
+    if not hugeData:
+        col1, col2 = st.columns(2)
+        col1.markdown("Best Chromosome:")
+        col2.markdown("```python\n" + str(best_chromosome))
+    else:
+        fig = plt.figure()
+        plt.title("Best Chromosome")
+        plt.plot(range(len(best_chromosome)), best_chromosome)
+        st.pyplot(fig)
+
+    st.markdown("### Generation-wise Results")
     fig = plt.figure()
     plt.title("Best Fitness Over Generations")
+    plt.plot(range(1, num_generations+1), max_fitness_history)
+    st.pyplot(fig)
+
+    fig = plt.figure()
+    plt.title("Generation-wise Best Fitness")
     plt.plot(range(1, num_generations+1), max_fitness_ingen_history)
     st.pyplot(fig)
 
     if hugeData or ncols == 0: return
+    st.markdown("### Chromosome Change Results")
     fig = plt.figure()
     best_chromosome_ingen_history = np.array(best_chromosome_ingen_history)
     n_genes = len(best_chromosome)
@@ -182,6 +212,7 @@ def UI_Results(RunData, ncols=3, hugeData=False):
     st.pyplot(fig)
 
 def UI_LoadImage():
+    USERINPUT_RGB = st.checkbox("RGB?")
     USERINPUT_ImageData = st.file_uploader("Upload Start Image", ['png', 'jpg', 'jpeg', 'bmp'])
 
     if USERINPUT_ImageData is not None:
@@ -197,20 +228,19 @@ def UI_LoadImage():
     ResizedSize = (int(USERINPUT_Image.shape[1] * USERINPUT_ResizeRatio), int(USERINPUT_Image.shape[0] * USERINPUT_ResizeRatio))
     USERINPUT_Image = cv2.resize(USERINPUT_Image, ResizedSize)
 
+    if not USERINPUT_RGB:
+        USERINPUT_Image = cv2.cvtColor(USERINPUT_Image, cv2.COLOR_RGB2GRAY)
+
     st.image(ResizeImage(USERINPUT_Image), "Input Image " + str(USERINPUT_Image.shape))
 
     return USERINPUT_Image
 
 def UI_ErodeImage(USERINPUT_Image_Original):
-    USERINPUT_RGBErode = st.checkbox("RGB Erode?")
-    USERINPUT_ErosionScale = st.slider("Erosion Scale", 0, 255, 1, 10)
+    USERINPUT_ErosionScale = st.slider("Erosion Scale", 0.0, 1.0, 0.1, 0.1)
     Noise = None
-    if not USERINPUT_RGBErode:
-        Noise2D = np.array(np.random.uniform(-1.0, 1.0, size=USERINPUT_Image_Original.shape[:2])*USERINPUT_ErosionScale, dtype=int)
-        Noise = np.dstack((Noise2D, Noise2D, Noise2D))
-    else:
-        Noise = np.array(np.random.uniform(-1.0, 1.0, size=USERINPUT_Image_Original.shape)*USERINPUT_ErosionScale, dtype=int)
-    USERINPUT_Image_Eroded = np.clip(Noise + USERINPUT_Image_Original, 0, 255)
+    Noise = np.random.uniform(1.0 - USERINPUT_ErosionScale, 1.0 + USERINPUT_ErosionScale, size=USERINPUT_Image_Original.shape)
+    USERINPUT_Image_Eroded = np.clip(Noise * USERINPUT_Image_Original, 0, 255)
+    USERINPUT_Image_Eroded = np.array(USERINPUT_Image_Eroded, dtype=np.uint8)
     st.image(ResizeImage(USERINPUT_Image_Eroded), caption="Eroded Image")
 
     return USERINPUT_Image_Eroded, USERINPUT_ErosionScale
@@ -226,7 +256,7 @@ def genetic_equation_optimisation():
     st.markdown("## Enter Params")
     USERINPUT_equation_inputs_str = st.text_input("Equation Coeffs (',' separated)", "2, 3")
 
-    col1, col2 = st.beta_columns(2)
+    col1, col2 = st.columns(2)
     USERINPUT_population_size = col1.number_input("Population Size", 1, 250, 200, 1)
     USERINPUT_num_parents_mating = col2.number_input("Number of Parents Mating", 0, int(USERINPUT_population_size), int(USERINPUT_population_size/2), 1)
     USERINPUT_num_generations = st.number_input("Number of generations", 1, 1000, 200, 1)
@@ -252,7 +282,6 @@ def genetic_equation_optimisation():
             boundary=(None, None), verbose=False, DisplayWidget=DisplayWidget)
 
         # Display Outputs
-        st.markdown("## Results")
         UI_Results(RunData)
 
 def genetic_image_reconstruction():
@@ -263,7 +292,7 @@ def genetic_image_reconstruction():
     USERINPUT_Image_Original = UI_LoadImage()
     USERINPUT_Image_Eroded, ErosionScale = UI_ErodeImage(USERINPUT_Image_Original)
 
-    col1, col2 = st.beta_columns(2)
+    col1, col2 = st.columns(2)
     USERINPUT_population_size = col1.number_input("Population Size", 1, 250, 200, 1)
     USERINPUT_num_parents_mating = col2.number_input("Number of Parents Mating", 0, int(USERINPUT_population_size), int(USERINPUT_population_size/2), 1)
     USERINPUT_num_generations = st.number_input("Number of generations", 1, 1000, 200, 1)
@@ -290,32 +319,27 @@ def genetic_image_reconstruction():
             boundary=(0.0, 1.5), verbose=False, DisplayWidget=DisplayWidget)
         
         # Final Reconstructed Image
-        # st.markdown("## Reconstructed Image")
-        # BestChromosome = np.array(RunData['best_chromosome'])
-        # ReconstructedChromosome = Eroded_Chromosome*BestChromosome
-        # ReconstructedImage = GeneticOptimisation.Chromosome2Image(ReconstructedChromosome, USERINPUT_Image_Eroded.shape)
-        # st.image(ResizeImage(ReconstructedImage), caption="Reconstructed Image")
+        st.markdown("## Reconstructed Image")
+        BestChromosome = np.array(RunData['best_chromosome'])
+        ReconstructedChromosome = Eroded_Chromosome*BestChromosome
+        ReconstructedImage = GeneticOptimisation.Chromosome2Image(ReconstructedChromosome, USERINPUT_Image_Eroded.shape)
+        st.image(ResizeImage(ReconstructedImage), caption="Reconstructed Image")
+
+        best_chromosome_grid = np.reshape(RunData['best_chromosome'], USERINPUT_Image_Eroded.shape)
+        BestChromosomeHeatMap = PlotHeatMap(best_chromosome_grid, "Best Chromosome HeatMap")
+        st.pyplot(BestChromosomeHeatMap)
 
         # Generation by Generation Best
-        best_chromosome_history = [h['best_chromosome_ingen'] for h in RunData['run_history']]
+        # best_chromosome_history = [h['best_chromosome_ingen'] for h in RunData['run_history']]
+        best_chromosome_history = [h['best_chromosome'] for h in RunData['run_history']]
         best_image_seq = [GeneticOptimisation.Chromosome2Image(Eroded_Chromosome*np.array(chromosome), USERINPUT_Image_Eroded.shape) for chromosome in best_chromosome_history]
         best_image_seq = [ResizeImage(I) for I in best_image_seq]
         best_image_seq = [AddImageElementIndexText(best_image_seq[i], i+1, len(best_image_seq)) for i in range(len(best_image_seq))]
-
-        # startEndPad = 25
-        # startPadIs = []
-        # endPadIs = []
-        # for i in range(startEndPad):
-        #     startPadIs.append(np.copy(best_image_seq[0]))
-        #     endPadIs.append(np.copy(best_image_seq[-1]))
-        # best_image_seq = startPadIs + best_image_seq + endPadIs
-
         VideoUtils.SaveImageSeq(best_image_seq, DEFAULT_SAVEPATH_ANIM)
         # st.video(DEFAULT_SAVEPATH_ANIM)
         st.image(DEFAULT_SAVEPATH_ANIM, caption="Generation Best Animation", use_column_width=True)
 
         # Results
-        st.markdown("## Results")
         UI_Results(RunData, hugeData=True)
     
 #############################################################################################################################

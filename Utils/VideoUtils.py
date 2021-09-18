@@ -15,7 +15,7 @@ from tqdm import tqdm
 def SaveImageSeq(imgSeq, savePath, size=(640, 480), fps=24.0):
     imgSeq_PIL = []
     for frame in imgSeq:
-        img = Image.fromarray((np.array(frame)*255).astype(np.uint8))
+        img = Image.fromarray(np.array(frame, dtype=np.uint8))
         imgSeq_PIL.append(img)
 
     if os.path.splitext(savePath)[-1] == '.gif':
