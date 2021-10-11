@@ -35,6 +35,7 @@ def main():
             config['PROJECT_MODES']
         )
     )
+    DEFAULT_VIDEO_DURATION = st.sidebar.slider("Generated Video Duration", 0.1, 5.0, 2.0, 0.1)
     
     if selected_box == config['PROJECT_NAME']:
         HomePage()
@@ -55,9 +56,11 @@ def HomePage():
 # Repo Based Vars
 CACHE_PATH = "StreamLitGUI/CacheData/Cache.json"
 DEFAULT_PATH_EXAMPLEIMAGE = 'StreamLitGUI/DefaultData/ExampleImage.png'
-DEFAULT_SAVEPATH_ANIM = 'StreamLitGUI/DefaultData/SavedAnim.gif'
+DEFAULT_SAVEPATH_VIDEO = "StreamLitGUI/DefaultData/SavedVideo.avi"
+DEFAULT_SAVEPATH_VIDEO_CONVERTED = "StreamLitGUI/DefaultData/SavedVideo_Converted.mp4"
 
 DEFAULT_IMAGE_SIZE = (256, 256)
+DEFAULT_VIDEO_DURATION = 2.0
 
 # Util Vars
 CACHE = {}
@@ -325,9 +328,10 @@ def genetic_image_reconstruction():
         ReconstructedImage = GeneticOptimisation.Chromosome2Image(ReconstructedChromosome, USERINPUT_Image_Eroded.shape)
         st.image(ResizeImage(ReconstructedImage), caption="Reconstructed Image")
 
+        st.markdown("## Best Chromosome HeatMap")
         best_chromosome_grid = np.reshape(RunData['best_chromosome'], USERINPUT_Image_Eroded.shape)
         BestChromosomeHeatMap = PlotHeatMap(best_chromosome_grid, "Best Chromosome HeatMap")
-        st.pyplot(BestChromosomeHeatMap)
+        st.pyplot(BestChromosomeHeatMap, caption="Best Chromosome HeatMap")
 
         # Generation by Generation Best
         # best_chromosome_history = [h['best_chromosome_ingen'] for h in RunData['run_history']]
@@ -335,9 +339,16 @@ def genetic_image_reconstruction():
         best_image_seq = [GeneticOptimisation.Chromosome2Image(Eroded_Chromosome*np.array(chromosome), USERINPUT_Image_Eroded.shape) for chromosome in best_chromosome_history]
         best_image_seq = [ResizeImage(I) for I in best_image_seq]
         best_image_seq = [AddImageElementIndexText(best_image_seq[i], i+1, len(best_image_seq)) for i in range(len(best_image_seq))]
-        VideoUtils.SaveImageSeq(best_image_seq, DEFAULT_SAVEPATH_ANIM)
-        # st.video(DEFAULT_SAVEPATH_ANIM)
-        st.image(DEFAULT_SAVEPATH_ANIM, caption="Generation Best Animation", use_column_width=True)
+        if best_image_seq[0].ndim == 2:
+            best_image_seq = [cv2.cvtColor(I, cv2.COLOR_GRAY2RGB) for I in best_image_seq]
+        
+        # Display Video Animation
+        st.markdown("## Generation Best Animation")
+        fps = (len(best_image_seq) / DEFAULT_VIDEO_DURATION)
+        # fps = min(fps, 30.0)
+        VideoUtils.SaveFrames2Video(best_image_seq, DEFAULT_SAVEPATH_VIDEO, fps, (best_image_seq[0].shape[0], best_image_seq[0].shape[1]))
+        VideoUtils.FixVideoFile(DEFAULT_SAVEPATH_VIDEO, DEFAULT_SAVEPATH_VIDEO_CONVERTED)
+        st.video(DEFAULT_SAVEPATH_VIDEO_CONVERTED)
 
         # Results
         UI_Results(RunData, hugeData=True)
